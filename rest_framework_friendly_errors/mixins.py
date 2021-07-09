@@ -204,7 +204,7 @@ class FriendlyErrorMessagesMixin(FieldMap):
                 if hasattr(err, 'detail') else err.message
             return err_message == message
         except KeyError:
-            pass
+            return False
 
     def find_validator(self, field, message, parent=None):
         for validator in field.validators:
