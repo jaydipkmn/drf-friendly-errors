@@ -203,6 +203,21 @@ class FriendlyErrorMessagesMixin(FieldMap):
             err_message = err.detail[0] \
                 if hasattr(err, 'detail') else err.message
             return err_message == message
+        # KeyError does not have message attribute nor it has detail so we can not categorized them along with the
+        # other two mentioned Errors and handle them all together in same except block.
+        # Also its KeyError i.e. data was not found in the self.initial_data so there wont be any validation needs to be
+        # performed and hence it make sense to either compare the message with string representation of KeyError or just
+        # return False. Please note that string representation of KeyError would be str(key) it tried to get.
+        # Why we need to do this ?
+        # This code gets executed to return formatted errors and it takes one field and error raised by system i.e.
+        # message and runs all the Validators of the field(i.e. TextField in this case) one by one, if Validator
+        # raises DjangoValidationError or RestValidationError then it compares the error message with message value and
+        # if its same then that Validator have raised this(i.e. message) error and appropriate error messages can be
+        # formatted based on that validator and but here there is no data for the key and that's why our code has raised
+        # error custom error before Validators of the field could raise error from our validate method but this package
+        # is expecting key to be present since it is doing dat[key] while it is not present, because of newly added
+        # default ProhibitNullCharactersValidator for CharField in django 2.0 it is executing this code, also at the
+        # end our error messages will get raised properly.
         except KeyError:
             return False
 
